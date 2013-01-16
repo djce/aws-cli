@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+
+require "optparse"
+opts = ARGV.getopts("v", "verbose")
+
+sqs_client = AwsCli.create_sqs_client
+sqs_client.queues.each do |queue|
+  if opts["verbose"] || opts["v"]
+    puts "%s\t%s" % [queue.url, queue.arn]
+  else
+    puts queue.url
+  end
+end

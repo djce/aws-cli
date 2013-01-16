@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+
+require "optparse"
+opts = ARGV.getopts("v", "verbose")
+
+sns_client = AwsCli.create_sns_client
+sns_client.topics.each do |topic|
+  if opts["verbose"] || opts["v"]
+    puts "%s" % [topic.arn]
+  else
+    puts topic.arn
+  end
+end

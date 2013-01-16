@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+
+sqs_client = AwsCli.create_sqs_client
+p sqs_client.client.endpoint
+
+sns_client = AwsCli.create_sns_client
+p sns_client.client.endpoint
