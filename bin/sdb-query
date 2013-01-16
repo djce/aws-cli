@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+
+require "optparse"
+opts = ARGV.getopts("v", "verbose")
+
+domain_name = ARGV.shift
+
+sdb_client = AwsCli.create_sdb_client
+domain = sdb_client.domains[domain_name]
+print "items = ", domain.items.count, "\n"
+
+domain.items.each do |item|
+  map = {}
+  item.attributes.each do |attribute|
+    v = attribute.values
+    v = v.length==1 ? v.first : v
+    map[attribute.name] = v
+  end
+  print item.name.inspect, " => ", map, "\n"
+end

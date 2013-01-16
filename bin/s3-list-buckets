@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+
+require "optparse"
+opts = ARGV.getopts("v", "verbose")
+
+s3_client = AwsCli.create_s3_client
+s3_client.buckets.each do |bucket|
+  if opts["verbose"] || opts["v"]
+    puts "%s" % [bucket.name]
+  else
+    puts bucket.name
+  end
+end
