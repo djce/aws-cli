@@ -1,0 +1,36 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+
+require "optparse"
+opts = ARGV.getopts("v", "verbose", "slurp")
+
+queue_name = ARGV.shift
+
+class MessageSender
+  def initialize(queue_name, opts)
+    @sqs_client = nil
+    @queue_name = queue_name
+    @opts = opts
+  end
+
+  def send_message(body)
+    @sqs_client ||= AwsCli.create_sqs_client
+
+    msg = @sqs_client.queues.named(@queue_name).send_message(body)
+    p msg
+    if @opts["verbose"] || @opts["v"]
+      puts "#{msg.md5}\t#{msg.message_id}"
+    end
+  end
+end
+
+sender = MessageSender.new(queue_name, opts)
+
+if opts["slurp"]
+  sender.send_message $stdin.readlines.join ""
+else
+  $stdout.sync = true
+  $stdin.lines.each { |data| sender.send_message data }
+end
+
