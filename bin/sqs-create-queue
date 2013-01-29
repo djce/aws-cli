@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+
+require "optparse"
+opts = ARGV.getopts("v", "verbose")
+
+sqs_client = AwsCli.create_sqs_client
+
+queue_name = ARGV.shift
+queue = sqs_client.queues.create(queue_name)
+puts queue.arn
+
