@@ -12,11 +12,8 @@ domain = sdb_client.domains[domain_name]
 print "items = ", domain.items.count, "\n"
 
 domain.items.each do |item|
-  map = {}
+  puts "  #{item.name.inspect}"
   item.attributes.each do |attribute|
-    v = attribute.values
-    v = v.length==1 ? v.first : v
-    map[attribute.name] = v
+    puts "    #{attribute.name.inspect} = #{attribute.values.inspect}"
   end
-  print item.name.inspect, " => ", map, "\n"
 end
