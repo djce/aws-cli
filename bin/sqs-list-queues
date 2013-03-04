@@ -3,13 +3,29 @@
 require 'aws-cli'
 
 require "optparse"
-opts = ARGV.getopts("v", "verbose")
+opts = ARGV.getopts("v", "verbose", "a", "attributes", "-b", "basename")
 
 sqs_client = AwsCli.create_sqs_client
 sqs_client.queues.each do |queue|
-  if opts["verbose"] || opts["v"]
-    puts "%s\t%s" % [queue.url, queue.arn]
-  else
-    puts queue.url
+  n = File.basename(queue.url)
+  next if !ARGV.empty? and !ARGV.any? { |prefix| n.start_with? prefix }
+
+  if opts["a"] || opts["attributes"]
+    msgs = queue.approximate_number_of_messages
+    invis = queue.approximate_number_of_messages_not_visible
+    delayed = queue.approximate_number_of_messages_delayed
+    print "#{msgs}\t#{invis}\t#{delayed}\t"
   end
+
+  if opts["b"] || opts["basename"]
+    print File.basename(queue.url)
+  else
+    print queue.url
+  end
+
+  if opts["verbose"] || opts["v"]
+    print "\t" + queue.arn
+  end
+  
+  print "\n"
 end
