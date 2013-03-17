@@ -7,9 +7,14 @@ opts = ARGV.getopts("v", "verbose")
 
 sns_client = AwsCli.create_sns_client
 sns_client.topics.each do |topic|
+  n = File.basename(topic.name)
+  next if !ARGV.empty? and !ARGV.any? { |prefix| n.start_with? prefix }
+
+  print topic.name
+
   if opts["verbose"] || opts["v"]
-    puts "%s" % [topic.arn]
-  else
-    puts topic.arn
+    print "\t" + topic.arn
   end
+  
+  print "\n"
 end
