@@ -29,6 +29,16 @@ class AwsCli
     AWS::SNS.new(config)
   end
 
+  def self.create_ec2_client
+    set_proxy
+    config = {
+      :ec2_endpoint => "ec2.#{region}.amazonaws.com",
+      :max_retries => 2
+    }
+    config = authentication_details.merge(config)
+    AWS::EC2.new(config)
+  end
+
   def self.create_sqs_client
     set_proxy
     config = {
