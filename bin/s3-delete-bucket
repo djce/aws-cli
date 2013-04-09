@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+
+require "optparse"
+opts = ARGV.getopts("v", "verbose", "debug")
+
+s3_client = AwsCli.create_s3_client
+ARGV.each do |bucket_name|
+  bucket = s3_client.buckets[bucket_name]
+  bucket.delete
+  puts "Deleted #{bucket_name}"
+end
