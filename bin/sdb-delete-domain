@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+
+require "optparse"
+opts = ARGV.getopts("v", "verbose", "f", "force")
+
+sdb_client = AwsCli.create_sdb_client
+domains = sdb_client.domains
+
+method = (opts["f"] || opts["force"]) ? :"delete!" : :delete
+
+ARGV.each do |domain_name|
+  domain = domains[domain_name]
+  domain.send method
+end
+
