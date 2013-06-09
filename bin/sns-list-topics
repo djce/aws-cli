@@ -3,16 +3,16 @@
 require 'aws-cli'
 
 require "optparse"
-opts = ARGV.getopts("v", "verbose")
+opts = ARGV.getopts("arn")
 
 sns_client = AwsCli.create_sns_client
-sns_client.topics.each do |topic|
-  n = File.basename(topic.name)
-  next if !ARGV.empty? and !ARGV.any? { |prefix| n.start_with? prefix }
+sns_client.topics.to_a.sort { |x,y| x.name <=> y.name }.each do |topic|
+  name = topic.name
+  next if !ARGV.empty? and !ARGV.any? { |prefix| name.start_with? prefix }
 
-  print topic.name
+  print name
 
-  if opts["verbose"] || opts["v"]
+  if opts["arn"]
     print "\t" + topic.arn
   end
   
