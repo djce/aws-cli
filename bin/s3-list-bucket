@@ -3,27 +3,32 @@
 require 'aws-cli'
 
 require "optparse"
-opts = ARGV.getopts("v", "verbose", "debug")
+opts = ARGV.getopts("v", "verbose", "no-list", "debug")
 
 s3_client = AwsCli.create_s3_client
 ARGV.each do |bucket_name|
   bucket = s3_client.buckets[bucket_name]
 
-  bucket.objects.each do |object|
-    if opts["verbose"] || opts["v"]
-      h = object.head
-      puts "%12s  %s  %s" % [ h.content_length, h.last_modified, object.key ]
-      opts["debug"] and p h
-    else
-      puts object.key
+  if !opts.has_key? "no-list"
+    bucket.objects.each do |object|
+      if opts["verbose"] || opts["v"]
+        h = object.head
+        puts "%12s  %s  %s" % [ h.content_length, h.last_modified, object.key ]
+        opts["debug"] and p h
+      else
+        puts object.key
+      end
     end
   end
 
   bucket.multipart_uploads.each do |upload|
     object = upload.object
     puts "multipart_upload: %s => %s" % [ upload.id, object.key ]
-    upload.completed_parts.each do |part|
+    upload.parts.each do |part|
       puts "  part: %12s %s %s" % [ part.size, part.last_modified, part.etag ]
+    end
+    upload.completed_parts.each do |part|
+      puts "  completed part: %12s %s %s" % [ part.size, part.last_modified, part.etag ]
     end
   end
 
