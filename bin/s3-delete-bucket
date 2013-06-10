@@ -3,11 +3,13 @@
 require 'aws-cli'
 
 require "optparse"
-opts = ARGV.getopts("v", "verbose", "debug")
+opts = ARGV.getopts("debug", "f", "force")
+
+method = (opts["f"] || opts["force"]) ? :"delete!" : :delete
 
 s3_client = AwsCli.create_s3_client
 ARGV.each do |bucket_name|
   bucket = s3_client.buckets[bucket_name]
-  bucket.delete
+  bucket.send method
   puts "Deleted #{bucket_name}"
 end
