@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+require 'optparse'
+
+if(ARGV.length != 2)
+  abort('Usage: sns-unsubscribe <topic> <endpoint>')  
+end
+
+sns_client = AwsCli.create_sns_client
+topic = sns_client.topics[ARGV[0]]
+
+puts 'Searching for subscription in ' + topic.name + '...'
+
+topic.subscriptions.each do |sub|
+  if(sub.endpoint == ARGV[1]) 
+    puts 'Unsubscribing from subscription: ' + sub.endpoint + '...'
+    sub.unsubscribe 
+    puts 'Unsubscribed.'
+  else 
+    puts 'Ignoring subscription to ' + sub.endpoint
+  end
+end
+  
