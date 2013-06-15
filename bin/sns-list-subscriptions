@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+
+require "optparse"
+
+desired_queue = ARGV.shift
+puts "Looking for topics subscribed to queues containing: #{desired_queue}"
+
+sns_client = AwsCli.create_sns_client
+sns_client.topics.to_a.sort { |x,y| x.name <=> y.name }.each do |topic|
+  name = topic.name
+  next if !ARGV.empty? and !ARGV.any? { |prefix| name.start_with? prefix }
+
+  topic.subscriptions.each do |sub|
+    if sub.endpoint.include? desired_queue.to_s
+      puts name
+    end
+  end
+
+end
