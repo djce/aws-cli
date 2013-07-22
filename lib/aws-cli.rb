@@ -4,15 +4,14 @@ class AwsCli
 
   def self.authentication_details
     aws_access_key_id = ENV['AWS_ACCESS_KEY_ID']
-    raise "AWS_ACCESS_KEY_ID not set." if !aws_access_key_id
-
     aws_secret_key = ENV['AWS_SECRET_KEY']
-    raise "AWS_SECRET_KEY not set." if !aws_secret_key
 
-    {
+    return {
       :access_key_id => aws_access_key_id,
       :secret_access_key => aws_secret_key
-    }
+    } if aws_access_key_id and aws_secret_key
+
+    {}
   end
 
   def self.region
@@ -68,6 +67,26 @@ class AwsCli
     }
     config = authentication_details.merge(config)
     AWS::S3.new(config)
+  end
+
+  def self.create_route53_client
+    set_proxy
+    config = {
+      :s3_endpoint => "route53.amazonaws.com",
+      :max_retries => 2
+    }
+    config = authentication_details.merge(config)
+    AWS::Route53.new(config)
+  end
+
+  def self.create_cf_client
+    set_proxy
+    config = {
+      :s3_endpoint => "cloudformation.#{region}.amazonaws.com",
+      :max_retries => 2
+    }
+    config = authentication_details.merge(config)
+    AWS::CloudFormation.new(config)
   end
 
   def self.set_proxy
