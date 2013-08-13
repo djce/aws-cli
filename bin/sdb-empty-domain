@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+
+require "optparse"
+opts = ARGV.getopts("v", "verbose")
+
+domain_name = ARGV.shift
+
+sdb_client = AwsCli.create_sdb_client
+domain = sdb_client.domains[domain_name]
+item_count = domain.items.count
+print "items = ", item_count , "\n"
+
+domain.items.each_with_index.map { |item, index|
+  puts "  Deleting: #{item.name.inspect}   [#{index} / #{item_count}]"
+  item.delete
+}
