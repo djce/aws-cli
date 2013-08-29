@@ -3,7 +3,7 @@
 require 'aws-cli'
 
 require "optparse"
-opts = ARGV.getopts("debug", "f", "force")
+opts = ARGV.getopts("f", "debug", "force")
 
 method = (opts["f"] || opts["force"]) ? :"delete!" : :delete
 

@@ -3,7 +3,7 @@
 require 'aws-cli'
 
 require "optparse"
-opts = ARGV.getopts("v", "verbose", "f", "force")
+opts = ARGV.getopts("vf", "verbose", "force")
 
 sdb_client = AwsCli.create_sdb_client
 domains = sdb_client.domains

@@ -3,7 +3,7 @@
 require 'aws-cli'
 
 require "optparse"
-opts = ARGV.getopts("arn", "subscriptions", "s")
+opts = ARGV.getopts("s", "arn", "subscriptions")
 
 sns_client = AwsCli.create_sns_client
 sns_client.topics.to_a.sort { |x,y| x.name <=> y.name }.each do |topic|

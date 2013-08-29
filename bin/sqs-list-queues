@@ -3,7 +3,7 @@
 require 'aws-cli'
 
 require "optparse"
-opts = ARGV.getopts("v", "verbose", "a", "attributes", "u", "url", "arn")
+opts = ARGV.getopts("vau", "verbose", "attributes", "url", "arn")
 
 sqs_client = AwsCli.create_sqs_client
 sqs_client.queues.each do |queue|
