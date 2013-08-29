@@ -3,22 +3,32 @@
 require 'aws-cli'
 require 'optparse'
 
-if(ARGV.length != 2)
-  abort('Usage: sns-unsubscribe <topic> <endpoint>')  
+if ARGV.length != 2
+  abort 'Usage: sns-unsubscribe <topic> <endpoint>'
 end
+
+topic_name, endpoint = ARGV
 
 sns_client = AwsCli.create_sns_client
-topic = sns_client.topics[ARGV[0]]
+topic = sns_client.topics.find topic_name
+if !topic
+  raise "No such topic '#{topic_name}'"
+end
 
-puts 'Searching for subscription in ' + topic.name + '...'
+found = 0
 
 topic.subscriptions.each do |sub|
-  if(sub.endpoint == ARGV[1]) 
-    puts 'Unsubscribing from subscription: ' + sub.endpoint + '...'
+  if sub.endpoint == endpoint
+    puts "Unsubscribing #{sub.endpoint}"
     sub.unsubscribe 
     puts 'Unsubscribed.'
+    ++found
   else 
-    puts 'Ignoring subscription to ' + sub.endpoint
+    puts "Ignoring subscription to #{sub.endpoint}"
   end
 end
-  
+
+if found == 0
+  $stderr << "Nothing unsubscribed"
+  exit 1
+end
