@@ -3,17 +3,51 @@
 require 'aws-cli'
 
 require "optparse"
-opts = ARGV.getopts("v", "verbose")
+opts = ARGV.getopts("vi", "verbose", "item-name", "key=s")
 
 domain_name = ARGV.shift
 
 sdb_client = AwsCli.create_sdb_client
 domain = sdb_client.domains[domain_name]
-print "items = ", domain.items.count, "\n"
 
-domain.items.each do |item|
+items = domain.items
+
+if ARGV.size == 1
+  query = ARGV.shift
+  items = items.where(query)
+end
+
+# items = items.select(:console_type)
+
+print "items = ", items.count, "\n"
+
+def dump_item(item, opts)
   puts "  #{item.name.inspect}"
-  item.attributes.each do |attribute|
-    puts "    #{attribute.name.inspect} = #{attribute.values.inspect}"
+
+  unless opts["i"] || opts["item-name"]
+    attributes = item.attributes.to_a
+    if attributes[0] and attributes[0].kind_of? AWS::SimpleDB::Attribute
+      attributes.sort_by! { |a| a.name }
+    else
+      attributes.sort_by! { |a| a[0] }
+    end
+    attributes.each do |attribute|
+      if attribute.kind_of? AWS::SimpleDB::Attribute
+        puts "    #{attribute.name.inspect} = #{attribute.values.sort.inspect}"
+      else
+        name, values = attribute
+        puts "    #{name.inspect} = #{values.sort.inspect}"
+      end
+    end
   end
+end
+
+if opts["key"]
+  item = items[ opts["key"] ]
+  dump_item item, opts
+  exit
+end
+
+items.select(:all).each do |item|
+  dump_item item, opts
 end
