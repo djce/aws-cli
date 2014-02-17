@@ -58,7 +58,6 @@ class S3ToFileSync
       return
     end
 
-    raise "boom"
     puts "sync #{object} to #{file} size=#{s3_size.inspect} mtime=#{s3_mtime.inspect}" if VERBOSE
 
     tmp_file = file+".synctmp"
