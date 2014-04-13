@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+
+ARGV.count == 1 or raise "Usage: sdb-backup DOMAIN > somefile.json"
+domain_name = ARGV.shift
+
+sdb_client = AwsCli.create_sdb_client
+domain = sdb_client.domains[domain_name]
+
+items = domain.items
+
+$stderr.print "items = ", items.count, "\n"
+
+def dump_item(item)
+  a = {}
+  item.attributes.keys.sort.each do |k|
+    a[k] = item.attributes[k]
+  end
+
+  dump = { "name" => item.name, "attributes" => a }
+  puts JSON.generate dump
+end
+
+items.select(:all).each do |item|
+  dump_item item
+end

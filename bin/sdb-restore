@@ -1,0 +1,53 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+
+ARGV.count == 1 or raise "Usage: sdb-restore DOMAIN < somefile.json"
+domain_name = ARGV.shift
+
+sdb_client = AwsCli.create_sdb_client
+domain = sdb_client.domains[domain_name]
+
+$stderr.print "existing items = ", domain.items.count, "\n"
+
+module AWS
+  class SimpleDB
+    class Domain
+      def batch_put(items_to_put)
+        client.batch_put_attributes(
+          domain_name: name,
+          items: items_to_put,
+        )
+      end
+    end
+  end
+end
+
+require 'json'
+lines = $stdin.lines.to_a
+BATCH_SIZE = 25
+until !lines or lines.empty?
+  next_lines = lines[0..BATCH_SIZE-1]
+  lines = lines[BATCH_SIZE..-1]
+
+  next_items = next_lines.map { |l| JSON.parse l }
+
+  req = next_items.map do |i|
+    attrs = []
+
+    i["attributes"].each do |name,values|
+      values.each do |value|
+        attrs << { name: name, value: value, replace: true }
+      end
+    end
+
+    {
+      name: i["name"],
+      attributes: attrs,
+    }
+  end
+
+  print "."
+  domain.batch_put(req)
+end
+puts ""
