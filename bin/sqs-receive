@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+
+require "optparse"
+opts = ARGV.getopts("v", "verbose", "slurp")
+
+queue_name = ARGV.shift
+
+@sqs_client ||= AwsCli.create_sqs_client
+p queue_name
+queue =  @sqs_client.queues.named(queue_name)
+p queue
+
+queue.poll(
+  :wait_time_seconds => 5,
+  :idle_timeout => 5,
+  :limit => 1,
+  :batch_size => 10
+) do |msg|
+  puts msg.body
+  puts ""
+end
+
