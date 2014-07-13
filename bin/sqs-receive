@@ -12,6 +12,8 @@ p queue_name
 queue =  @sqs_client.queues.named(queue_name)
 p queue
 
+$stdout.sync = true
+
 queue.poll(
   :wait_time_seconds => 5,
   :idle_timeout => 5,
