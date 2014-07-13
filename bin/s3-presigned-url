@@ -1,0 +1,90 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+
+require 'optparse'
+
+methods = []
+options = {}
+
+opts_parser = OptionParser.new do |opts|
+  opts.on("--read", "--get", :NONE) do
+    methods << :get
+  end
+  opts.on("--write", "--put", :NONE) do
+    methods << :put
+  end
+  opts.on("--head", :NONE) do
+    methods << :head
+  end
+  opts.on("--delete", :NONE) do
+    methods << :delete
+  end
+
+  opts.on("--expires", :REQUIRED) do |v|
+    if v.match /^\d+$/
+      if v.to_i < 1E9
+        options[:expires] = Time.now + v.to_i
+      else
+        options[:expires] = Time.at v.to_i
+      end
+    else
+      require 'time'
+      options[:expires] = Time.parse v
+    end
+  end
+
+  opts.on("--secure", :NONE)   { options[:secure] = true }
+  opts.on("--insecure", :NONE) { options[:secure] = false }
+
+  # :content_type put
+  # :content_md5 put
+  # :endpoint
+  # :port
+  # :force_path_style
+
+  # :response_content_type
+  opts.on("--response-content-type", "-t", :REQUIRED) do |v|
+    options[:response_content_type] = v
+  end
+
+  # :response_content_language
+  # :response_expires
+  # :response_cache_control
+  # :response_content_disposition
+  # :acl
+  # :response_content_encoding
+  # :signature_version
+end
+
+opts_parser.parse!
+# $stderr.puts opts_parser.help
+
+methods << :get if methods.empty?
+methods = methods.sort.uniq
+
+@s3_client = AwsCli.create_s3_client
+
+def do_bucket_key(bucket_name, object_name, options)
+  bucket = @s3_client.buckets[bucket_name]
+  object = bucket.objects[object_name]
+  url = object.url_for(methods, options)
+  puts url
+end
+
+exit if ARGV.empty?
+
+if ARGV.first.start_with? "s3://"
+  require 'uri'
+  ARGV.each do |arg|
+    uri = URI.parse arg
+    do_bucket_key uri.host, uri.path.gsub(/^\//, ""), options
+  end
+else
+  bucket_name = ARGV.shift
+
+  ARGV.each do |object_name|
+    do_bucket_key bucket_name, object_name, options
+  end
+end
+
