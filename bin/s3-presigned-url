@@ -7,6 +7,10 @@ require 'optparse'
 methods = []
 options = {}
 
+# options[:signature_version] = :v4
+options[:expires] = Time.now + 3600
+options[:secure] = true
+
 opts_parser = OptionParser.new do |opts|
   opts.on("--read", "--get", :NONE) do
     methods << :get
@@ -45,6 +49,7 @@ opts_parser = OptionParser.new do |opts|
 
   # :response_content_type
   opts.on("--response-content-type", "-t", :REQUIRED) do |v|
+    # FIXME ignored by do_manual_signing
     options[:response_content_type] = v
   end
 
@@ -60,12 +65,48 @@ end
 opts_parser.parse!
 # $stderr.puts opts_parser.help
 
+# FIXME ignored by do_manual_signing
 methods << :get if methods.empty?
 methods = methods.sort.uniq
 
 @s3_client = AwsCli.create_s3_client
 
+# https://forums.aws.amazon.com/thread.jspa?threadID=102292
+# I wonder if the Ruby SDK url_for works at all?
+def do_manual_signing(bucket_name, object_name, options)
+  sts = AWS::STS.new
+
+  policy = AWS::STS::Policy.new
+  policy.allow(:actions => ["s3:GetObject"], :resources => "arn:aws:s3:::#{bucket_name}/#{object_name}")
+  duration = options[:expires] - Time.now
+  session = sts.new_federated_session("TemporaryUser", :policy => policy, :duration => duration.to_i)
+
+  access_key_id=session.credentials[:access_key_id]
+  secret_access_key = session.credentials[:secret_access_key]
+  security_token = session.credentials[:session_token]
+  expiration = options[:expires].to_i
+
+  string_to_sign = "GET\n\n\n#{expiration}\nx-amz-security-token:#{security_token}\n/#{bucket_name}/#{object_name}"
+
+  signature = CGI.escape(
+              Base64.encode64(
+                OpenSSL::HMAC.digest(
+                  OpenSSL::Digest::Digest.new('sha1'),
+                    secret_access_key, string_to_sign)).gsub("\n",""))
+
+  scheme = if options[:secure] == false
+             "http"
+           else
+             "https"
+           end
+
+  url =  "https://s3.amazonaws.com/#{bucket_name}/#{object_name}?AWSAccessKeyId=#{access_key_id}&Expires=#{expiration}&Signature=#{signature}&x-amz-security-token=#{CGI.escape(security_token)}"
+  url =  "#{scheme}://#{bucket_name}.s3.amazonaws.com/#{object_name}?AWSAccessKeyId=#{access_key_id}&Expires=#{expiration}&Signature=#{signature}&x-amz-security-token=#{CGI.escape(security_token)}"
+  puts url
+end
+
 def do_bucket_key(bucket_name, object_name, options)
+  return do_manual_signing bucket_name, object_name, options
   bucket = @s3_client.buckets[bucket_name]
   object = bucket.objects[object_name]
   url = object.url_for(methods, options)
