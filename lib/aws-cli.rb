@@ -97,7 +97,7 @@ class AwsCli
 
   def self.get_proxy
     e = ENV['https_proxy']
-    e = "https://#{e}" if e && !e.empty? && !e.start_with?('https://')
+    e = "https://#{e}" if e && !e.empty? && !e.start_with?('http')
     return e
   end
 end
