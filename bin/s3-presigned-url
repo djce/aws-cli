@@ -16,12 +16,15 @@ opts_parser = OptionParser.new do |opts|
     methods << :get
   end
   opts.on("--write", "--put", :NONE) do
+    $stderr.puts "Warning: Currently the only supported operation is GET"
     methods << :put
   end
   opts.on("--head", :NONE) do
+    $stderr.puts "Warning: Currently the only supported operation is GET"
     methods << :head
   end
   opts.on("--delete", :NONE) do
+    $stderr.puts "Warning: Currently the only supported operation is GET"
     methods << :delete
   end
 
