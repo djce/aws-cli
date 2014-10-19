@@ -7,6 +7,12 @@ opts = ARGV.getopts("", "debug")
 
 s3_client = AwsCli.create_s3_client
 
+if ARGV.first.start_with? "s3://"
+  require 'uri'
+  uri = URI.parse ARGV[0]
+  ARGV = [ uri.host, uri.path.gsub(/^\//, "") ]
+end
+
 bucket_name = ARGV.shift
 bucket = s3_client.buckets[bucket_name]
 
