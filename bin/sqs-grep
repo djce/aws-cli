@@ -68,7 +68,7 @@ client = @sqs_client.client
 loop do
   r = client.receive_message(
     queue_url: queue.url,
-    attribute_names: %w[ all ],
+    attribute_names: %w[ All ],
     max_number_of_messages: 10,
     visibility_timeout: visibility_timeout,
     wait_time_seconds: wait_time_seconds,
@@ -88,7 +88,8 @@ loop do
     matches = (m.body.match(pattern_text) != nil)
 
     if matches ^ invert_match
-      puts "%s\t%s\t%s" % [ queue_name, m.message_id, m.receipt_handle ]
+      puts "%s\t%s" % [ queue_name, m.message_id ]
+      puts m.attributes.inspect
       puts m.body
       puts ""
 
