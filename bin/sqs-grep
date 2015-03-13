@@ -1,0 +1,100 @@
+#!/usr/bin/env ruby
+
+require 'aws-cli'
+require 'optparse'
+require 'set'
+
+visibility_timeout = 30
+wait_time_seconds = 10
+delete_matched = false
+invert_match = false
+
+opts_parser = OptionParser.new do |opts|
+  opts.banner = "Usage: sqs-grep [OPTIONS] PATTERN QUEUE"
+  opts.separator ""
+  opts.on("-d", "--delete", "Consume (delete) matched messages") do
+    delete_matched = true
+  end
+  opts.on("-v", "--invert-match", "Invert the matching logic") do
+    invert_match = true
+  end
+  opts.on("-t", "--visibility-timeout N", "Set the visibility timeout (default: #{visibility_timeout})") do |n|
+    visibility_timeout = n.to_i
+  end
+  opts.on("-w", "--wait-time-seconds N", "Give up after this many seconds of no new messages (default: #{wait_time_seconds})") do |n|
+    wait_time_seconds = n.to_i
+  end
+  opts.separator ""
+  opts.separator <<-EOF
+Examples. (Note the use of the pattern "^" to match all messages).
+
+  # Show all messages, delete nothing:
+  sqs-grep ^ name-of-queue
+
+  # Show only messages matching the given pattern, without deleting them:
+  sqs-grep "[Ee]xception.*at line" name-of-queue
+
+  # Show and consume (delete) all messages (somewhat like sqs-receive):
+  sqs-grep --delete ^ name-of-queue
+
+  # Show and consume (delete) only messages matching matching some pattern:
+  sqs-grep --delete 1caf7fdb-e47a-46af-b8e3-4d955883a396 name-of-queue
+
+  EOF
+end
+
+opts_parser.parse!
+
+if ARGV.count != 2
+  $stderr.puts opts_parser.help
+  exit 2
+end
+
+pattern_text, queue_name = ARGV
+
+@sqs_client ||= AwsCli.create_sqs_client
+queue =  @sqs_client.queues.named(queue_name)
+
+$stdout.sync = true
+
+seen_message_ids = Set.new
+client = @sqs_client.client
+
+loop do
+  r = client.receive_message(
+    queue_url: queue.url,
+    attribute_names: %w[ all ],
+    max_number_of_messages: 10,
+    visibility_timeout: visibility_timeout,
+    wait_time_seconds: wait_time_seconds,
+  )
+
+  break if r.messages.empty?
+
+  r.messages.each do |m|
+    # puts "%s\t%s\t%s" % [ queue_name, m.message_id, m.receipt_handle ]
+
+    if seen_message_ids.include? m.message_id
+      $stderr.puts "Already seen message #{m.message_id} - bailing out in case we're looping"
+      exit
+    end
+    seen_message_ids << m.message_id
+
+    matches = (m.body.match(pattern_text) != nil)
+
+    if matches ^ invert_match
+      puts "%s\t%s\t%s" % [ queue_name, m.message_id, m.receipt_handle ]
+      puts m.body
+      puts ""
+
+      if delete_matched
+        delete_res = client.delete_message(
+          queue_url: queue.url,
+          receipt_handle: m.receipt_handle,
+        )
+        p delete_res
+        puts ""
+      end
+    end
+  end
+end
