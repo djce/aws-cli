@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'aws-cli'
-  s.version     = '0.1'
+  s.version     = '0.2'
   s.date        = '2015-03-13'
   s.summary     = 'Tools for working with various Amazon Web Services'
   s.description = '
