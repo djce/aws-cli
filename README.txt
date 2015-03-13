@@ -12,7 +12,8 @@ put object from stdin; get object to stdout; ...
 - SimpleDB: create, delete, list domains; query; dump entire domain as
 json; ...
 
-Defaults to eu-west-1, or whatever $AWS_REGION is set to.
+Region can be set via $AWS_REGION / $AMAZON_REGION / $AWS_DEFAULT_REGION.
+
 Respects $https_proxy.
 
 Why?
