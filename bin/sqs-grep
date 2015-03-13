@@ -6,6 +6,7 @@ require 'set'
 
 visibility_timeout = 30
 wait_time_seconds = 10
+max_count = nil
 delete_matched = false
 invert_match = false
 
@@ -17,6 +18,9 @@ opts_parser = OptionParser.new do |opts|
   end
   opts.on("-v", "--invert-match", "Invert the matching logic") do
     invert_match = true
+  end
+  opts.on("-m", "--max-count N", "Stop after N matches") do |n|
+    max_count = n.to_i
   end
   opts.on("-t", "--visibility-timeout N", "Set the visibility timeout (default: #{visibility_timeout})") do |n|
     visibility_timeout = n.to_i
@@ -58,6 +62,7 @@ queue =  @sqs_client.queues.named(queue_name)
 $stdout.sync = true
 
 seen_message_ids = Set.new
+num_matched = 0
 client = @sqs_client.client
 
 loop do
@@ -95,6 +100,9 @@ loop do
         p delete_res
         puts ""
       end
+
+      num_matched = num_matched + 1
+      exit if max_count and num_matched >= max_count
     end
   end
 end
