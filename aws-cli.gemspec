@@ -47,6 +47,7 @@ sdb-query
 sdb-restore
 sns-create-topic
 sns-delete-topic
+sns-list-subscriptions
 sns-list-topics
 sns-unsubscribe
 sqs-create-queue
