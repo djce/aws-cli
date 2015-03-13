@@ -6,9 +6,15 @@ require "optparse"
 opts = ARGV.getopts("vau", "verbose", "attributes", "url", "arn")
 
 sqs_client = AwsCli.create_sqs_client
-sqs_client.queues.each do |queue|
+
+queues = if ARGV.empty?
+           sqs_client.queues.to_a
+         else
+           ARGV.map {|q| sqs_client.queues.with_prefix(q).to_a}.flatten
+         end
+
+queues.each do |queue|
   name = File.basename(queue.url)
-  next if !ARGV.empty? and !ARGV.any? { |prefix| name.start_with? prefix }
 
   if opts["a"] || opts["attributes"]
     msgs = queue.approximate_number_of_messages
