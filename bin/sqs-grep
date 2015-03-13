@@ -3,12 +3,14 @@
 require 'aws-cli'
 require 'optparse'
 require 'set'
+require 'json'
 
 visibility_timeout = 30
 wait_time_seconds = 10
 max_count = nil
 delete_matched = false
 invert_match = false
+json_format = false
 
 opts_parser = OptionParser.new do |opts|
   opts.banner = "Usage: sqs-grep [OPTIONS] PATTERN QUEUE"
@@ -27,6 +29,9 @@ opts_parser = OptionParser.new do |opts|
   end
   opts.on("-w", "--wait-time-seconds N", "Give up after this many seconds of no new messages (default: #{wait_time_seconds})") do |n|
     wait_time_seconds = n.to_i
+  end
+  opts.on("-j", "--json", "Show output in json format") do
+    json_format = true
   end
   opts.separator ""
   opts.separator <<-EOF
@@ -88,19 +93,32 @@ loop do
     matches = (m.body.match(pattern_text) != nil)
 
     if matches ^ invert_match
-      puts "%s\t%s" % [ queue_name, m.message_id ]
-      puts m.attributes.inspect
-      puts m.body
-      puts ""
+      json_data = {
+        queue_url: queue.url,
+        queue_name: queue_name,
+        message_id: m.message_id,
+        attributes: m.attributes.to_h,
+        body: m.body,
+      }
+      if !json_format
+        puts "%s\t%s" % [ queue_name, m.message_id ]
+        puts m.attributes.inspect
+        puts m.body
+        puts ""
+      end
 
       if delete_matched
         delete_res = client.delete_message(
           queue_url: queue.url,
           receipt_handle: m.receipt_handle,
         )
-        p delete_res
-        puts ""
+        if !json_format
+          p delete_res
+          puts ""
+        end
       end
+
+      puts JSON.pretty_generate(json_data) if json_format
 
       num_matched = num_matched + 1
       exit if max_count and num_matched >= max_count
