@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'aws-cli'
-  s.version     = '0.3'
+  s.version     = '0.4'
   s.date        = '2015-03-13'
   s.summary     = 'Tools for working with various Amazon Web Services'
   s.description = '
@@ -63,4 +63,6 @@ lib/aws-cli.rb
   ] + s.executables.map {|s| "bin/"+s}
 
   s.require_paths = ["lib"]
+
+  s.add_dependency 'aws-sdk-v1', "~> 1.63"
 end

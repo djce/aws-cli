@@ -1,4 +1,3 @@
-source "https://rubygems.org"
-
-gem 'extensions' if RUBY_VERSION =~ /^1.8/
-gem 'aws-sdk-v1', '~> 1.60'
+source "https://rubygems.org" do
+  gem 'aws-sdk-v1', '~> 1.63'
+end
