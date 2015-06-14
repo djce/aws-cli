@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'aws-cli'
+require 'cloudsaw'
 require 'optparse'
 
 if ARGV.length != 2
@@ -9,7 +9,7 @@ end
 
 topic_name, endpoint = ARGV
 
-sns_client = AwsCli.create_sns_client
+sns_client = CloudSaw.create_sns_client
 topic = sns_client.topics.find topic_name
 if !topic
   raise "No such topic '#{topic_name}'"

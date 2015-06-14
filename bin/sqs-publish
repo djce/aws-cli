@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'aws-cli'
+require 'cloudsaw'
 
 require "optparse"
 opts = ARGV.getopts("v", "verbose", "slurp")
@@ -15,7 +15,7 @@ class MessageSender
   end
 
   def send_message(body)
-    @sqs_client ||= AwsCli.create_sqs_client
+    @sqs_client ||= CloudSaw.create_sqs_client
 
     msg = @sqs_client.queues.named(@queue_name).send_message(body)
     p msg

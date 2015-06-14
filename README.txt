@@ -1,4 +1,4 @@
-aws-cli - simple command line tools for Amazon Web Services
+cloudsaw - simple command line tools for Amazon Web Services
 -------------------------------------------------------------------------------
 
 It includes:
@@ -41,7 +41,7 @@ AWS_REGION is respected, and defaults to eu-west-1.
 Usage as a gem
 -------------------------------------------------------------------------------
 
-gem build aws-cli.gemspec
+gem build cloudsaw.gemspec
 gem install <the .gem file it just built>
 
 Usage from git

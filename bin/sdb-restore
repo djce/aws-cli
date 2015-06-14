@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 
-require 'aws-cli'
+require 'cloudsaw'
 
 ARGV.count == 1 or raise "Usage: sdb-restore DOMAIN < somefile.json"
 domain_name = ARGV.shift
 
-sdb_client = AwsCli.create_sdb_client
+sdb_client = CloudSaw.create_sdb_client
 domain = sdb_client.domains[domain_name]
 
 $stderr.print "existing items = ", domain.items.count, "\n"

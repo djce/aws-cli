@@ -1,13 +1,13 @@
 #!/usr/bin/env ruby
 
-require 'aws-cli'
+require 'cloudsaw'
 
 require "optparse"
 opts = ARGV.getopts("v", "verbose")
 
 exit 0 if ARGV.size == 0
 
-sns_client = AwsCli.create_sns_client
+sns_client = CloudSaw.create_sns_client
 
 sns_client.topics.each do |t|
   if ARGV.any? { |arg| t.name == arg }

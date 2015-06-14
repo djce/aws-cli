@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'aws-cli'
+require 'cloudsaw'
 require 'optparse'
 
 def endpoint_name(n)
@@ -42,7 +42,7 @@ end
 
 opts_parser.parse!
 
-sns_client = AwsCli.create_sns_client
+sns_client = CloudSaw.create_sns_client
 
 sns_client.subscriptions.each do |s|
   t = s.topic.arn

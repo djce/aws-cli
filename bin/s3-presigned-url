@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'aws-cli'
+require 'cloudsaw'
 
 require 'optparse'
 
@@ -72,7 +72,7 @@ opts_parser.parse!
 methods << :get if methods.empty?
 methods = methods.sort.uniq
 
-@s3_client = AwsCli.create_s3_client
+@s3_client = CloudSaw.create_s3_client
 
 # https://forums.aws.amazon.com/thread.jspa?threadID=102292
 # I wonder if the Ruby SDK url_for works at all?

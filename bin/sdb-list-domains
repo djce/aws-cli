@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 
-require 'aws-cli'
+require 'cloudsaw'
 
 require "optparse"
 opts = ARGV.getopts("v", "verbose")
 
-sdb_client = AwsCli.create_sdb_client
+sdb_client = CloudSaw.create_sdb_client
 sdb_client.domains.each do |domain|
   if opts["verbose"] || opts["v"]
     puts "%s" % [domain.name]

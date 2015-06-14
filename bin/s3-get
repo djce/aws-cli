@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 
-require 'aws-cli'
+require 'cloudsaw'
 
 require "optparse"
 opts = ARGV.getopts("", "debug")
 
-@s3_client = AwsCli.create_s3_client
+@s3_client = CloudSaw.create_s3_client
 
 def cat_bucket_key(bucket_name, object_name)
   bucket = @s3_client.buckets[bucket_name]

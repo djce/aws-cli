@@ -1,10 +1,10 @@
 Gem::Specification.new do |s|
-  s.name        = 'aws-cli'
-  s.version     = '0.4'
+  s.name        = 'cloudsaw'
+  s.version     = '0.4.1'
   s.date        = '2015-03-13'
   s.summary     = 'Tools for working with various Amazon Web Services'
   s.description = '
-    aws-cli provides tools for working with various Amazon Web Services.
+    cloudsaw provides tools for working with various Amazon Web Services.
 
     It includes:
 
@@ -20,12 +20,12 @@ Gem::Specification.new do |s|
     Defaults to eu-west-1, or whatever $AWS_REGION is set to.
     Respects $https_proxy.
   '
-  s.homepage    = 'https://github.com/rvedotrc/aws-cli'
+  s.homepage    = 'https://github.com/rvedotrc/cloudsaw'
   s.authors     = ['Rachel Evans']
-  s.email       = 'aws-cli-git@rve.org.uk'
+  s.email       = 'cloudsaw-git@rve.org.uk'
 
   s.executables = %w[
-aws-cli-test
+cloudsaw-test
 ec2-list-instances
 s3-create-bucket
 s3-delete
@@ -59,7 +59,7 @@ sqs-receive
   ]
 
   s.files       = %w[
-lib/aws-cli.rb
+lib/cloudsaw.rb
   ] + s.executables.map {|s| "bin/"+s}
 
   s.require_paths = ["lib"]

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'aws-cli'
+require 'cloudsaw'
 require 'optparse'
 require 'set'
 require 'json'
@@ -61,7 +61,7 @@ end
 
 pattern_text, queue_name = ARGV
 
-@sqs_client ||= AwsCli.create_sqs_client
+@sqs_client ||= CloudSaw.create_sqs_client
 queue =  @sqs_client.queues.named(queue_name)
 
 $stdout.sync = true

@@ -1,6 +1,6 @@
 require 'aws-sdk-v1'
 
-class AwsCli
+class CloudSaw
 
   def self.create_sns_client
     config = core_config.merge({

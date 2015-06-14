@@ -1,12 +1,12 @@
 #!/usr/bin/env ruby
 
-require 'aws-cli'
+require 'cloudsaw'
 
 require "optparse"
 opts = ARGV.getopts("v", "verbose")
 
 dbname = ARGV.shift
 
-sdb_client = AwsCli.create_sdb_client
+sdb_client = CloudSaw.create_sdb_client
 domain = sdb_client.domains.create(dbname)
 p domain

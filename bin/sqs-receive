@@ -1,13 +1,13 @@
 #!/usr/bin/env ruby
 
-require 'aws-cli'
+require 'cloudsaw'
 
 require "optparse"
 opts = ARGV.getopts("v", "verbose", "slurp")
 
 queue_name = ARGV.shift
 
-@sqs_client ||= AwsCli.create_sqs_client
+@sqs_client ||= CloudSaw.create_sqs_client
 p queue_name
 queue =  @sqs_client.queues.named(queue_name)
 p queue

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'aws-cli'
+require 'cloudsaw'
 require 'uri'
 require 'celluloid'
 require 'fileutils'
@@ -88,7 +88,7 @@ end
 s3_dir, local_dir = ARGV
 bucket_name, prefix = parse_s3_uri s3_dir
 
-s3_client = AwsCli.create_s3_client
+s3_client = CloudSaw.create_s3_client
 bucket = s3_client.buckets[bucket_name]
 
 futures = {}

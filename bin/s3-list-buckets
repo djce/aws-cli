@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
-require 'aws-cli'
+require 'cloudsaw'
 
-s3_client = AwsCli.create_s3_client
+s3_client = CloudSaw.create_s3_client
 s3_client.buckets.each do |bucket|
   n = bucket.name
   next if !ARGV.empty? and !ARGV.any? { |prefix| n.start_with? prefix }

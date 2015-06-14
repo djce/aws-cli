@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 
-require 'aws-cli'
+require 'cloudsaw'
 
 require "optparse"
 opts = ARGV.getopts("vf", "verbose", "force")
 
-sdb_client = AwsCli.create_sdb_client
+sdb_client = CloudSaw.create_sdb_client
 domains = sdb_client.domains
 
 method = (opts["f"] || opts["force"]) ? :"delete!" : :delete
