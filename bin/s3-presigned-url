@@ -94,7 +94,7 @@ def do_manual_signing(bucket_name, object_name, options)
   signature = CGI.escape(
               Base64.encode64(
                 OpenSSL::HMAC.digest(
-                  OpenSSL::Digest::Digest.new('sha1'),
+                  OpenSSL::Digest.new('sha1'),
                     secret_access_key, string_to_sign)).gsub("\n",""))
 
   scheme = if options[:secure] == false
