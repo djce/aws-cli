@@ -14,7 +14,7 @@ poll_seconds = 5
 
 opts_parser = OptionParser.new do |opts|
   opts.banner = "
-  watch-stack [OPTIONS] STACK-NAME-OR-ID
+  cfn-events [OPTIONS] STACK-NAME-OR-ID
   "
   opts.separator "Controlling which events to select:"
   opts.on("-r", "--region=s", "CloudFormation region"){|r| client_options[:region] = r }
@@ -29,24 +29,24 @@ opts_parser = OptionParser.new do |opts|
   opts.on("-p", "--poll-interval=n", "Poll interval, in seconds"){|t| poll_seconds = t.to_f }
   opts.separator <<-EOF
 
-If neither --wait nor --forever are used, then watch-stack exits once any
+If neither --wait nor --forever are used, then cfn-events exits once any
 currently-available events have been displayed (and --poll-interval has no
 effect).
 
-If --wait is used, then watch-stack keeps reading events (respecting the given
+If --wait is used, then cfn-events keeps reading events (respecting the given
 --poll-interval) until the stack reaches a non-"IN_PROGRESS" state.  The exit
 status depends on what state the stack ends up in.  If it's a FAILED state,
 the exit status is 2; if it's a ROLLBACK state; the exit status is 1;
 otherwise, the exit status is 0.
 
-If --forever is used, then watch-stack keeps reading events until killed, or
+If --forever is used, then cfn-events keeps reading events until killed, or
 an error occurs.
 
   EOF
 end
 opts_parser.parse!
 
-ARGV.count == 1 or raise "Usage: watch-stack [OPTIONS] STACK-NAME-OR-ID"
+ARGV.count == 1 or raise "Usage: cfn-events [OPTIONS] STACK-NAME-OR-ID"
 @stack_name_or_id = ARGV.first
 
 @cfn = Aws::CloudFormation::Client.new(client_options)

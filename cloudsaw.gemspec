@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'cloudsaw'
-  s.version     = '0.4.2'
+  s.version     = '0.4.3'
   s.date        = '2015-07-19'
   s.summary     = 'Tools for working with various Amazon Web Services'
   s.description = '
@@ -17,6 +17,8 @@ Gem::Specification.new do |s|
     - SimpleDB: create, delete, list domains; query; dump entire domain as
       json; ...
 
+    - CloudFormation: cfn-events
+
     Defaults to eu-west-1, or whatever $AWS_REGION is set to.
     Respects $https_proxy.
   '
@@ -25,6 +27,7 @@ Gem::Specification.new do |s|
   s.email       = 'cloudsaw-git@rve.org.uk'
 
   s.executables = %w[
+cfn-events
 cloudsaw-test
 ec2-list-instances
 s3-create-bucket
