@@ -1,0 +1,122 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'aws-sdk'
+require 'json'
+require 'time'
+
+client_options = {}
+since = nil
+@output_json = false
+wait = false
+forever = false
+poll_seconds = 5
+
+opts_parser = OptionParser.new do |opts|
+  opts.banner = "
+  watch-stack [OPTIONS] STACK-NAME-OR-ID
+  "
+  opts.separator "Controlling which events to select:"
+  opts.on("-r", "--region=s", "CloudFormation region"){|r| client_options[:region] = r }
+  opts.on("-s", "--since=s", "Don't show any events earlier than this time"){|s| since = Time.parse(s).to_time }
+  opts.separator ""
+  opts.separator "Controlling the output format:"
+  opts.on("-j", "--json", "Output events as json"){ @output_json = true }
+  opts.separator ""
+  opts.separator "Controlling when to stop:"
+  opts.on("-w", "--wait", "Stop once the stack reaches a stable state"){ wait = true }
+  opts.on("-f", "--forever", "Keep showing events (until killed)"){ forever = true }
+  opts.on("-p", "--poll-interval=n", "Poll interval, in seconds"){|t| poll_seconds = t.to_f }
+  opts.separator <<-EOF
+
+If neither --wait nor --forever are used, then watch-stack exits once any
+currently-available events have been displayed (and --poll-interval has no
+effect).
+
+If --wait is used, then watch-stack keeps reading events (respecting the given
+--poll-interval) until the stack reaches a non-"IN_PROGRESS" state.  The exit
+status depends on what state the stack ends up in.  If it's a FAILED state,
+the exit status is 2; if it's a ROLLBACK state; the exit status is 1;
+otherwise, the exit status is 0.
+
+If --forever is used, then watch-stack keeps reading events until killed, or
+an error occurs.
+
+  EOF
+end
+opts_parser.parse!
+
+ARGV.count == 1 or raise "Usage: watch-stack [OPTIONS] STACK-NAME-OR-ID"
+@stack_name_or_id = ARGV.first
+
+@cfn = Aws::CloudFormation::Client.new(client_options)
+
+def all_events
+  @cfn.describe_stack_events(stack_name: @stack_name_or_id).data.stack_events.reverse
+end
+
+def events_since_time(t)
+  # There may be a more efficient algorithm
+  all_events.select {|e| e.timestamp > t }
+end
+
+def events_since_id(id)
+  # There may be a more efficient algorithm
+  events = all_events
+  i = events.index {|e| e.event_id == id }
+  if i < 0
+    events
+  else
+    events[i+1..-1]
+  end
+end
+
+def show_events(events)
+  events.each do |e|
+    if @output_json
+      puts JSON.generate(e.to_h)
+    else
+      puts [
+        e.timestamp.utc.strftime('%Y-%m-%dT%H:%M:%SZ'),
+        e.resource_type,
+        e.resource_status,
+        e.logical_resource_id,
+        e.physical_resource_id,
+        e.resource_status_reason,
+      ].join " "
+    end
+  end
+end
+
+def steady_state?(e)
+  e.resource_type == "AWS::CloudFormation::Stack" and not e.resource_status.match(/IN_PROGRESS/)
+end
+
+events = if since
+           events_since_time(since)
+         else
+           all_events
+         end
+
+show_events(events)
+
+exit unless forever or wait
+
+# I'm assuming / pretending that by this point, events.empty? is never true
+
+while forever or not steady_state?(events.last)
+
+  $stdout.sync
+  sleep poll_seconds
+
+  new_events = events_since_id(events.last.event_id)
+
+  unless new_events.empty?
+    show_events(new_events)
+    events = new_events
+  end
+end
+
+exit 2 if events.last.resource_status.match /FAILED/
+exit 1 if events.last.resource_status.match /ROLLBACK/
+exit 0
