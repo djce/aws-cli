@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'cloudsaw'
-  s.version     = '0.4.3'
+  s.version     = '0.4.4'
   s.date        = '2015-07-19'
   s.summary     = 'Tools for working with various Amazon Web Services'
   s.description = '
