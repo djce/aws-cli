@@ -51,6 +51,14 @@ ARGV.count == 1 or raise "Usage: cfn-events [OPTIONS] STACK-NAME-OR-ID"
 
 @cfn = Aws::CloudFormation::Client.new(client_options)
 
+def resolve_stack(stack_name_or_id)
+  ans = @cfn.describe_stacks(stack_name: stack_name_or_id).data.stacks[0].stack_id
+  if ans != stack_name_or_id
+    $stderr.puts "Resolved #{stack_name_or_id} to #{ans}"
+  end
+  ans
+end
+
 def all_events
   @cfn.describe_stack_events(stack_name: @stack_name_or_id).data.stack_events.reverse
 end
@@ -91,6 +99,8 @@ end
 def steady_state?(e)
   e.resource_type == "AWS::CloudFormation::Stack" and not e.resource_status.match(/IN_PROGRESS/)
 end
+
+@stack_name_or_id = resolve_stack(@stack_name_or_id)
 
 events = if since
            events_since_time(since)
