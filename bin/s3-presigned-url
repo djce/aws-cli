@@ -59,9 +59,16 @@ opts_parser.parse!
 
 @s3_client = CloudSaw.create_s3_client
 
-# https://forums.aws.amazon.com/thread.jspa?threadID=102292
-# I wonder if the Ruby SDK url_for works at all?
-def do_bucket_key(bucket_name, object_name, options)
+def get_temporary_keys_from_environment
+  # So many different env keys in use :-(
+  [
+    ENV["AWS_ACCESS_KEY_ID"],
+    ENV["AWS_SECRET_ACCESS_KEY"],
+    ENV["AWS_SESSION_TOKEN"],
+  ]
+end
+
+def get_temporary_keys_via_sts
   sts = AWS::STS.new
 
   policy = AWS::STS::Policy.new
@@ -72,6 +79,17 @@ def do_bucket_key(bucket_name, object_name, options)
   access_key_id=session.credentials[:access_key_id]
   secret_access_key = session.credentials[:secret_access_key]
   security_token = session.credentials[:session_token]
+end
+
+# https://forums.aws.amazon.com/thread.jspa?threadID=102292
+# I wonder if the Ruby SDK url_for works at all?
+def do_bucket_key(bucket_name, object_name, options)
+  access_key_id, secret_access_key, security_token = if ENV.has_key? "AWS_SESSION_TOKEN"
+                                                       get_temporary_keys_from_environment
+                                                     else
+                                                       get_temporary_keys_via_sts
+                                                     end
+
   expiration = options[:expires].to_i
 
   string_to_sign = "GET\n\n\n#{expiration}\nx-amz-security-token:#{security_token}\n/#{bucket_name}/#{object_name}"
