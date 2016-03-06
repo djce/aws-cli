@@ -4,31 +4,25 @@ require 'cloudsaw'
 
 require 'optparse'
 
-methods = []
 options = {}
 
 # options[:signature_version] = :v4
 options[:expires] = Time.now + 3600
-options[:secure] = true
 
 opts_parser = OptionParser.new do |opts|
-  opts.on("--read", "--get", :NONE) do
-    methods << :get
-  end
-  opts.on("--write", "--put", :NONE) do
-    $stderr.puts "Warning: Currently the only supported operation is GET"
-    methods << :put
-  end
-  opts.on("--head", :NONE) do
-    $stderr.puts "Warning: Currently the only supported operation is GET"
-    methods << :head
-  end
-  opts.on("--delete", :NONE) do
-    $stderr.puts "Warning: Currently the only supported operation is GET"
-    methods << :delete
-  end
+  opts.banner = <<EOF
 
-  opts.on("--expires", :REQUIRED) do |v|
+Usage: s3-presigned-url [OPTIONS] S3URL [S3URL ...]
+Usage: s3-presigned-url [OPTIONS] BUCKET KEY [KEY ...]
+
+Generates presigned URLs for accessing objects in S3.  The objects are either
+specified either in URL form (s3://bucket/key), or with the bucket and key as
+separate arguments.  The URLs are emitted to standard output, one per line, in
+the same order as the input arguments.
+
+EOF
+
+  opts.on("--expires", "-e", :REQUIRED, "Specify the expiry time of the URLs") do |v|
     if v.match /^\d+$/
       if v.to_i < 1E9
         options[:expires] = Time.now + v.to_i
@@ -41,42 +35,33 @@ opts_parser = OptionParser.new do |opts|
     end
   end
 
-  opts.on("--secure", :NONE)   { options[:secure] = true }
-  opts.on("--insecure", :NONE) { options[:secure] = false }
+  opts.on("--insecure", "-k", :NONE, "Generates insecure (http, not https) URLs") { options[:insecure] = true }
+  opts.on("--path-style", "-p", :NONE, "Generates path-style (not vhost-style) URLs") { options[:path_style] = true }
 
-  # :content_type put
-  # :content_md5 put
-  # :endpoint
-  # :port
-  # :force_path_style
+  opts.separator <<EOF
 
-  # :response_content_type
-  opts.on("--response-content-type", "-t", :REQUIRED) do |v|
-    # FIXME ignored by do_manual_signing
-    options[:response_content_type] = v
-  end
+Expiry times may be specified as an epoch time in seconds; time from now, in
+seconds; or as some date/time string.
 
-  # :response_content_language
-  # :response_expires
-  # :response_cache_control
-  # :response_content_disposition
-  # :acl
-  # :response_content_encoding
-  # :signature_version
+The default style of generated URLs is secure, vhost-style.
+
+Examples:
+
+  s3-presigned-url --expires 1200 my-assets-bucket images/banner.jpg images/footer.jpg
+
+  s3-presigned-url s3://my-assets-bucket/images/banner.jpg
+
+EOF
 end
 
 opts_parser.parse!
 # $stderr.puts opts_parser.help
 
-# FIXME ignored by do_manual_signing
-methods << :get if methods.empty?
-methods = methods.sort.uniq
-
 @s3_client = CloudSaw.create_s3_client
 
 # https://forums.aws.amazon.com/thread.jspa?threadID=102292
 # I wonder if the Ruby SDK url_for works at all?
-def do_manual_signing(bucket_name, object_name, options)
+def do_bucket_key(bucket_name, object_name, options)
   sts = AWS::STS.new
 
   policy = AWS::STS::Policy.new
@@ -101,22 +86,16 @@ def do_manual_signing(bucket_name, object_name, options)
                 ).gsub("\n","")
               )
 
-  scheme = if options[:secure] == false
-             "http"
-           else
-             "https"
-           end
+  object_url = if options[:path_style]
+                 "https://s3.amazonaws.com/#{bucket_name}/#{object_name}"
+               elsif options[:insecure]
+                 "http://#{bucket_name}.s3.amazonaws.com/#{object_name}"
+               else
+                 "https://#{bucket_name}.s3.amazonaws.com/#{object_name}"
+               end
 
-  url =  "https://s3.amazonaws.com/#{bucket_name}/#{object_name}?AWSAccessKeyId=#{access_key_id}&Expires=#{expiration}&Signature=#{signature}&x-amz-security-token=#{CGI.escape(security_token)}"
-  url =  "#{scheme}://#{bucket_name}.s3.amazonaws.com/#{object_name}?AWSAccessKeyId=#{access_key_id}&Expires=#{expiration}&Signature=#{signature}&x-amz-security-token=#{CGI.escape(security_token)}"
-  puts url
-end
+  url = object_url + "?AWSAccessKeyId=#{access_key_id}&Expires=#{expiration}&Signature=#{signature}&x-amz-security-token=#{CGI.escape(security_token)}"
 
-def do_bucket_key(bucket_name, object_name, options)
-  return do_manual_signing bucket_name, object_name, options
-  bucket = @s3_client.buckets[bucket_name]
-  object = bucket.objects[object_name]
-  url = object.url_for(methods, options)
   puts url
 end
 
