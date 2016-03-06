@@ -2,10 +2,33 @@
 
 require 'cloudsaw'
 
+require "optparse"
+opts = ARGV.getopts("r", "region")
+
 s3_client = CloudSaw.create_s3_client
+
+buckets = []
+
 s3_client.buckets.each do |bucket|
   n = bucket.name
   next if !ARGV.empty? and !ARGV.any? { |prefix| n.start_with? prefix }
+  buckets << bucket
+end
 
-  puts bucket.name
+if opts["r"] or opts["region"]
+  data = buckets.map do |bucket|
+    Thread.new do
+      { location: bucket.location_constraint, name: bucket.name }
+    end
+  end.map &:value
+
+  unless data.empty?
+    width = data.map {|d| (d[:location] || "-").length }.max
+    format = "%-#{width}.#{width}s %s"
+    data.each do |d|
+      puts format % [ d[:location] || "-", d[:name] ]
+    end
+  end
+else
+  buckets.each {|b| puts b.name}
 end
