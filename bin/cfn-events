@@ -113,6 +113,8 @@ show_events(events)
 exit unless forever or wait
 
 # I'm assuming / pretending that by this point, events.empty? is never true
+# FIXME! It's false.  If --since was used, and there have been no events since
+# that time.  That's a bug. :-(
 
 while forever or not steady_state?(events.last)
 
