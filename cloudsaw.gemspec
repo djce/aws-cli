@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'cloudsaw'
-  s.version     = '0.4.4'
+  s.version     = '0.4.5'
   s.date        = '2015-07-19'
   s.summary     = 'Tools for working with various Amazon Web Services'
   s.description = '
@@ -51,4 +51,5 @@ lib/cloudsaw.rb
   s.require_paths = ["lib"]
 
   s.add_dependency 'aws-sdk-v1', "~> 1.64"
+  s.add_dependency 'aws-sdk', "~> 2.0"
 end
