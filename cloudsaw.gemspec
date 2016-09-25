@@ -8,16 +8,15 @@ Gem::Specification.new do |s|
 
     It includes:
 
-    - SQS: create, delete, list queues; publish a message from stdin;
-      receive messages to stdout; ...
+    - SQS: list queues with message counts; publish a message from stdin;
+      receive messages to stdout; search messages by content
 
-    - S3: create, delete, list buckets; list objects, and multipart uploads;
-      put object from stdin; get object to stdout; ...
+    - S3: list buckets; list objects, and multipart uploads;
+      put object from stdin; get object to stdout; generate presigned URL
 
-    - SimpleDB: create, delete, list domains; query; dump entire domain as
-      json; ...
+    - SimpleDB: query; dump entire domain as json; restore from json
 
-    - CloudFormation: cfn-events
+    - CloudFormation: show stack events
 
     Defaults to eu-west-1, or whatever $AWS_REGION is set to.
     Respects $https_proxy.
@@ -29,32 +28,16 @@ Gem::Specification.new do |s|
   s.executables = %w[
 cfn-events
 cloudsaw-test
-ec2-list-instances
-s3-create-bucket
-s3-delete
-s3-delete-bucket
 s3-empty-bucket
 s3-get
 s3-list-bucket
 s3-list-buckets
 s3-presigned-url
 s3-put
-s3-rm
-s3-sync
 sdb-backup
-sdb-create-domain
-sdb-delete-domain
 sdb-empty-domain
-sdb-list-domains
 sdb-query
 sdb-restore
-sns-create-topic
-sns-delete-topic
-sns-list-subscriptions
-sns-list-topics
-sns-unsubscribe
-sqs-create-queue
-sqs-delete-queue
 sqs-grep
 sqs-list-queues
 sqs-publish
